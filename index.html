@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Assistant</title>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #282c34;
+            color: white;
+            margin: 0;
+        }
+        #container {
+            text-align: center;
+            background: #1e1e1e;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            width: 300px;
+        }
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        p {
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+        button {
+            padding: 12px 24px;
+            font-size: 16px;
+            margin-top: 20px;
+            cursor: pointer;
+            border: none;
+            border-radius: 8px;
+            background-color: #61dafb;
+            color: #282c34;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #21a1f1;
+        }
+        #status {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #61dafb;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <h1>Voice Assistant</h1>
+        <p>Click the button and speak your command</p>
+        <button onclick="startListening()">Give Command</button>
+        <p id="status"></p>
+    </div>
+
+    <script>
+        function startListening() {
+            const status = document.getElementById('status');
+            status.textContent = "Listening...";
+            const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+            recognition.lang = 'en-US';
+            recognition.onresult = function(event) {
+                const command = event.results[0][0].transcript;
+                status.textContent = `You said: ${command}`;
+                sendCommand(command);
+            }
+            recognition.onerror = function(event) {
+                status.textContent = 'Error occurred in recognition: ' + event.error;
+            }
+            recognition.start();
+        }
+
+        function sendCommand(command) {
+            fetch('http://127.0.0.1:5000/command', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ command: command }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    console.log('Command processed successfully');
+                } else {
+                    console.error('Error processing command:', data.message);
+                }
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+        }
+    </script>
+</body>
+</html>
+
+
+
+
